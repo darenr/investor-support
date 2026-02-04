@@ -1,0 +1,107 @@
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+const messagesContainer = document.getElementById('messages');
+const fileStatus = document.getElementById('file-status');
+const analyzeModal = document.getElementById('analyze-modal');
+const closeModalBtn = document.getElementById('close-modal');
+
+let isFileLoaded = false;
+
+// Enable inputs when file is loaded
+window.electronAPI.onFileLoaded((event, fileName) => {
+    isFileLoaded = true;
+    fileStatus.textContent = `Current File: ${fileName}`;
+    fileStatus.style.color = '#059669'; // Green
+    userInput.disabled = false;
+    sendBtn.disabled = false;
+    appendMessage('ai', `I've read ${fileName}. What would you like to know?`);
+});
+
+// Handle "Analyze" menu click
+window.electronAPI.onMenuAnalyze(() => {
+    if (!isFileLoaded) {
+        alert("Please open a PDF file first.");
+        return;
+    }
+    analyzeModal.classList.add('visible');
+});
+
+// Close modal
+closeModalBtn.addEventListener('click', () => {
+    analyzeModal.classList.remove('visible');
+});
+
+// Click outside modal to close
+analyzeModal.addEventListener('click', (e) => {
+    if (e.target === analyzeModal) {
+        analyzeModal.classList.remove('visible');
+    }
+});
+
+// Handle Task Cards
+document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', async () => {
+        const taskType = card.getAttribute('data-task');
+        analyzeModal.classList.remove('visible');
+        
+        let taskName = "";
+        if (taskType === 'summarize') taskName = "Summarizing document";
+        if (taskType === 'tech-questions') taskName = "Generating tech questions";
+
+        appendMessage('user', `[Running Task: ${taskName}...]`);
+        appendMessage('ai', 'Thinking...');
+        
+        // Remove the "Thinking..." message implicitly by appending, or track it? 
+        // For simplicity, we'll just append the result.
+        
+        try {
+            const response = await window.electronAPI.runTask(taskType);
+            // Ideally remove the last 'Thinking...' message, but for MVP just append.
+            appendMessage('ai', response);
+        } catch (error) {
+            appendMessage('ai', `Error: ${error}`);
+        }
+    });
+});
+
+// Chat Logic
+sendBtn.addEventListener('click', sendMessage);
+userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+
+    userInput.value = '';
+    appendMessage('user', text);
+    
+    // Disable during generation
+    userInput.disabled = true;
+    sendBtn.disabled = true;
+    const loadingMsg = appendMessage('ai', 'Thinking...');
+
+    try {
+        const response = await window.electronAPI.askAI(text);
+        loadingMsg.textContent = response; // Update the thinking message
+    } catch (error) {
+        loadingMsg.textContent = "Error communicating with AI.";
+    } finally {
+        userInput.disabled = false;
+        sendBtn.disabled = false;
+        userInput.focus();
+    }
+}
+
+function appendMessage(role, text) {
+    const msgDiv = document.createElement('div');
+    msgDiv.classList.add('message', role);
+    msgDiv.textContent = text;
+    messagesContainer.appendChild(msgDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    return msgDiv;
+}

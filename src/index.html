@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Investor Support</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Use KaTeX for math rendering if needed, though simple pre-wrap handles most -->
+</head>
+
+<body>
+    <header>
+        <div id="app-title"><strong>Investor Support AI</strong></div>
+        <div id="file-status">No file loaded</div>
+    </header>
+
+    <div id="chat-container">
+        <div id="messages">
+            <div class="message ai">Hello! Please open an investor document (PDF) from the File menu to get started.
+            </div>
+            <!-- Messages will be added here -->
+        </div>
+        <div id="input-area">
+            <input type="text" id="user-input" placeholder="Ask a question about the document..." disabled>
+            <button id="send-btn" disabled>Send</button>
+        </div>
+    </div>
+
+    <!-- Analyze Modal -->
+    <div id="analyze-modal">
+        <div class="modal-content">
+            <button class="close-button" id="close-modal">&times;</button>
+            <h2>Analyze Document</h2>
+            <p>Select a task to run on the loaded document.</p>
+
+            <div class="cards-container">
+                <div class="card" data-task="summarize">
+                    <h3>Summarize Document</h3>
+                    <p>Get a comprehensive summary of the deck or cap table, highlighting key value propositions and
+                        financials.</p>
+                </div>
+                <div class="card" data-task="tech-questions">
+                    <h3>Prepare Tech Questions</h3>
+                    <p>Generate a list of technical due diligence questions based on the claims and architecture
+                        described.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+
+</html>

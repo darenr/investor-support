@@ -1,0 +1,49 @@
+{
+  "name": "investor-support",
+  "version": "1.0.0",
+  "description": "An electron app that uses AI to help an investor made decisions",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darenr/investor-support.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/darenr/investor-support/issues"
+  },
+  "homepage": "https://github.com/darenr/investor-support#readme",
+  "devDependencies": {
+    "electron": "latest",
+    "electron-builder": "latest"
+  },
+  "dependencies": {
+    "@google/genai": "^1.39.0",
+    "openai": "latest",
+    "pdf-parse": "latest"
+  },
+  "build": {
+    "appId": "com.investorsupport.app",
+    "productName": "Investor Support AI",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.business"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
