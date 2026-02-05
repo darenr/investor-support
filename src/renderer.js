@@ -2,7 +2,6 @@ const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const messagesContainer = document.getElementById('messages');
 const fileStatus = document.getElementById('file-status');
-const analyzeModal = document.getElementById('analyze-modal');
 const closeModalBtn = document.getElementById('close-modal');
 const statusBar = document.getElementById('status-bar');
 
@@ -30,35 +29,20 @@ window.electronAPI.onFileLoaded((event, fileName) => {
     fileStatus.style.color = '#059669'; // Green
     userInput.disabled = false;
     sendBtn.disabled = false;
-    appendMessage('ai', `I've read ${fileName}. What would you like to know?`);
+    appendMessage('ai', `I've read ${fileName}. Select a task from the right panel or ask away!`);
 });
 
-// Handle "Analyze" menu click
-window.electronAPI.onMenuAnalyze(() => {
-    if (!isFileLoaded) {
-        alert("Please open a PDF file first.");
-        return;
-    }
-    analyzeModal.classList.add('visible');
-});
-
-// Close modal
-closeModalBtn.addEventListener('click', () => {
-    analyzeModal.classList.remove('visible');
-});
-
-// Click outside modal to close
-analyzeModal.addEventListener('click', (e) => {
-    if (e.target === analyzeModal) {
-        analyzeModal.classList.remove('visible');
-    }
-});
+// Removed: Modal Logic
 
 // Handle Task Cards
 document.querySelectorAll('.card').forEach(card => {
     card.addEventListener('click', async () => {
+        if (!isFileLoaded) {
+            alert("Please open a PDF file first.");
+            return;
+        }
+
         const taskType = card.getAttribute('data-task');
-        analyzeModal.classList.remove('visible');
         
         let taskName = "";
         if (taskType === 'summarize') taskName = "Summarizing document";
