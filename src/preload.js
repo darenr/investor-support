@@ -7,7 +7,8 @@ let DOMPurify;
 try {
   // Try loading marked
   const markedModule = require('marked');
-  marked = markedModule.marked || markedModule;
+  // In v11 CJS, 'marked' property is the main function, or 'parse' function exists on root
+  marked = markedModule.marked || markedModule.parse || markedModule;
 } catch (e) {
   console.error("Preload Warning: Failed to load 'marked'. Markdown will be disabled.", e);
 }
@@ -18,6 +19,7 @@ try {
   DOMPurify = createDOMPurify(window);
 } catch (e) {
   console.error("Preload Warning: Failed to load 'dompurify'. Markdown will be disabled.", e);
+  // Fallback: simple text escaper if purify is missing? No, just disable md.
 }
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -30,16 +32,25 @@ contextBridge.exposeInMainWorld('electronAPI', {
       // Defensive rendering
       if (DOMPurify && marked) {
           try {
-             // Handle both marked.parse(text) and marked(text)
-             const parser = (typeof marked.parse === 'function') ? marked.parse : marked;
-             if (typeof parser === 'function') {
-                 return DOMPurify.sanitize(parser(text));
+             // marked v11 usage: marked.parse(text) or marked(text)
+             // We determined 'marked' variable holds the function or object having parse
+             let html = "";
+             if (typeof marked === 'function') {
+                 html = marked(text);
+             } else if (typeof marked.parse === 'function') {
+                 html = marked.parse(text);
+             } else {
+                 console.warn("Marked misconfigured", marked);
+                 return text;
              }
+             
+             // Sanitize
+             return DOMPurify.sanitize(html);
           } catch (error) {
               console.error("Markdown rendering error:", error);
           }
       }
-      // Fallback to plain text if anything failed
+      console.warn("Markdown rendering disabled (dependencies missing).");
       return text;
   }
 });

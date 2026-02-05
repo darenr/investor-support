@@ -14,39 +14,38 @@
         <div id="file-status">No file loaded</div>
     </header>
 
-    <div id="chat-container">
-        <div id="messages">
-            <div class="message ai">Hello! Please open an investor document (PDF) from the File menu to get started.
+    <div id="main-layout">
+        <div id="chat-container">
+            <div id="messages">
+                <div class="message ai">Hello! Please open an investor document (PDF) from the File menu to get started.
+                </div>
+                <!-- Messages will be added here -->
             </div>
-            <!-- Messages will be added here -->
+            <div id="input-area">
+                <input type="text" id="user-input" placeholder="Ask a question about the document..." disabled>
+                <button id="send-btn" disabled>Send</button>
+            </div>
         </div>
-        <div id="input-area">
-            <input type="text" id="user-input" placeholder="Ask a question about the document..." disabled>
-            <button id="send-btn" disabled>Send</button>
-        </div>
-    </div>
 
-    <!-- Analyze Modal -->
-    <div id="analyze-modal">
-        <div class="modal-content">
-            <button class="close-button" id="close-modal">&times;</button>
-            <h2>Analyze Document</h2>
-            <p>Select a task to run on the loaded document.</p>
-
+        <div id="right-nav">
+            <div class="nav-header">
+                <h2>Analysis Tasks</h2>
+                <p>Run automated analysis</p>
+            </div>
             <div class="cards-container">
                 <div class="card" data-task="summarize">
                     <h3>Summarize Document</h3>
-                    <p>Get a comprehensive summary of the deck or cap table, highlighting key value propositions and
-                        financials.</p>
+                    <p>Get a comprehensive summary of the deck or cap table.</p>
                 </div>
                 <div class="card" data-task="tech-questions">
                     <h3>Prepare Tech Questions</h3>
-                    <p>Generate a list of technical due diligence questions based on the claims and architecture
-                        described.</p>
+                    <p>Generate due diligence questions based on technical claims.</p>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal removed -->
 
     <footer id="status-bar">Ready</footer>
 
