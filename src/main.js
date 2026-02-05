@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const pdf = require('pdf-parse');
 const { OpenAI } = require('openai');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenAI } = require('@google/genai');
 
 let mainWindow;
 let pdfContent = '';
@@ -32,12 +32,15 @@ const menuTemplate = [
       {
         label: 'Open PDF',
         click: async () => {
+           mainWindow.webContents.send('app:status', 'Opening file dialog...');
           const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
             properties: ['openFile'],
             filters: [{ name: 'PDFs', extensions: ['pdf'] }],
           });
           if (!canceled && filePaths.length > 0) {
             loadFile(filePaths[0]);
+          } else {
+             mainWindow.webContents.send('app:status', 'Open cancelled.');
           }
         },
       },
@@ -88,13 +91,24 @@ Menu.setApplicationMenu(menu);
 
 async function loadFile(filePath) {
   try {
-    const dataBuffer = fs.readFileSync(filePath);
+    mainWindow.webContents.send('app:status', `Reading file: ${path.basename(filePath)}...`);
+    // Small delay to allow UI to update if operation is blocking (readFileSync is blocking)
+    // using readFile async would be better, but staying consistent for now.
+    // However, since we send an IPC message, it's async nature helps.
+    
+    // Better: Read async to not freeze main process
+    const dataBuffer = await fs.promises.readFile(filePath);
+    
+    mainWindow.webContents.send('app:status', 'Parsing PDF...');
     const data = await pdf(dataBuffer);
+    
     pdfContent = data.text;
     mainWindow.webContents.send('file:loaded', path.basename(filePath));
+    mainWindow.webContents.send('app:status', 'File loaded successfully.');
   } catch (error) {
     console.error('Error reading PDF:', error);
-    dialog.showErrorBox('Error', 'Failed to read the PDF file.');
+    mainWindow.webContents.send('app:status', `Error: ${error.message}`);
+    dialog.showErrorBox('Error', `Failed to read the PDF file.\n\nDetails: ${error.message}`);
   }
 }
 
@@ -116,11 +130,12 @@ async function callAI(prompt, systemInstruction = null) {
     });
     return response.choices[0].message.content;
   } else if (geminiKey) {
-    const genAI = new GoogleGenerativeAI(geminiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-    const result = await model.generateContent(contextPrompt);
-    const response = await result.response;
-    return response.text();
+    const client = new GoogleGenAI({ apiKey: geminiKey });
+    const response = await client.models.generateContent({
+      model: 'gemini-1.5-pro',
+      contents: contextPrompt,
+    });
+    return response.text;
   } else {
     throw new Error('No API Key found (OPENAI_API_KEY or GEMINI_API_KEY)');
   }

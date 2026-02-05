@@ -4,8 +4,24 @@ const messagesContainer = document.getElementById('messages');
 const fileStatus = document.getElementById('file-status');
 const analyzeModal = document.getElementById('analyze-modal');
 const closeModalBtn = document.getElementById('close-modal');
+const statusBar = document.getElementById('status-bar');
+
+if (!window.electronAPI) {
+    const err = "Critical Error: Electron API not initialized. Preload script likely failed.";
+    console.error(err);
+    if (statusBar) statusBar.textContent = err;
+    if (fileStatus) fileStatus.textContent = "App Initialization Failed";
+    alert(err);
+    throw new Error(err);
+}
 
 let isFileLoaded = false;
+
+// Update Status Bar
+window.electronAPI.onAppStatus((event, message) => {
+    statusBar.textContent = message;
+    console.log("Status update:", message);
+});
 
 // Enable inputs when file is loaded
 window.electronAPI.onFileLoaded((event, fileName) => {
@@ -87,7 +103,7 @@ async function sendMessage() {
 
     try {
         const response = await window.electronAPI.askAI(text);
-        loadingMsg.textContent = response; // Update the thinking message
+        loadingMsg.innerHTML = window.electronAPI.renderMarkdown(response); // Update the thinking message
     } catch (error) {
         loadingMsg.textContent = "Error communicating with AI.";
     } finally {
@@ -100,7 +116,12 @@ async function sendMessage() {
 function appendMessage(role, text) {
     const msgDiv = document.createElement('div');
     msgDiv.classList.add('message', role);
-    msgDiv.textContent = text;
+    if (role === 'ai') {
+        const rendered = window.electronAPI.renderMarkdown(text);
+        msgDiv.innerHTML = rendered;
+    } else {
+         msgDiv.textContent = text;
+    }
     messagesContainer.appendChild(msgDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     return msgDiv;

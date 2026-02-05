@@ -61,7 +61,47 @@ header {
     background-color: #ffffff;
     border: 1px solid #e5e7eb;
     color: #1f2937;
-    white-space: pre-wrap; /* Preserve formatting */
+}
+
+.message.ai p {
+    margin: 0 0 0.5em 0;
+}
+.message.ai p:last-child {
+    margin-bottom: 0;
+}
+.message.ai pre {
+    background-color: #f3f4f6;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+}
+.message.ai code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    background-color: #f3f4f6;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+}
+.message.ai pre code {
+    background-color: transparent;
+    padding: 0;
+    font-size: 0.875em;
+}
+.message.ai ul, .message.ai ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+.message.ai li {
+    margin-bottom: 0.25rem;
+}
+.message.ai h1, .message.ai h2, .message.ai h3, .message.ai h4 {
+    margin: 1rem 0 0.5rem 0;
+    font-weight: 600;
+    line-height: 1.25;
+}
+.message.ai h1:first-child, .message.ai h2:first-child, .message.ai h3:first-child {
+    margin-top: 0;
 }
 
 #input-area {
@@ -173,4 +213,12 @@ button:disabled {
 .card p {
     color: #4b5563;
     font-size: 0.9rem;
+}
+
+#status-bar {
+    background-color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.8rem;
+    color: #6b7280;
 }
