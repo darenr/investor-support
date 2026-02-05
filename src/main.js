@@ -202,13 +202,13 @@ app.whenReady().then(() => {
       return "Please open a PDF file first.";
     }
     
-    let prompt = "";
+    let prompt = "You are a highly skilled financial analyst assistant. Based on the content of the document provided, perform the following task:\n\n";
     if (taskType === 'summarize') {
-      prompt = "Please provide a comprehensive summary of this document, highlighting key value propositions, financials, and team details.";
+      prompt += "Please provide a comprehensive summary of this document, highlighting key value propositions, financials, and team details.";
     } else if (taskType === 'tech-questions') {
-      prompt = "Based on the technical details in this document, please prepare a list of 5-10 technical due diligence questions to ask the team.";
+      prompt += "Based on the technical details in this document, please prepare a list of 5-10 technical due diligence questions to ask the team.";
     } else if (taskType === 'create-diagrams') {
-      prompt = "Based on the data, relationships, processes, or structures described in this document, create helpful visual diagrams using Mermaid syntax. \n\nIMPORTANT SYNTAX RULES:\n1. Use quotes for ANY text labels containing spaces or special characters (e.g. A[\"Income Statement (USD)\"]).\n2. Avoid using parentheses inside labels unless they are quoted.\n3. Keep labels concise.\n4. Ensure the syntax is valid (e.g. use 'graph TD' or 'flowchart LR').\n\nInclude diagrams such as: flowcharts for processes, graphs for organizational structure, timelines for milestones, or charts for data relationships. Provide 2-3 relevant diagrams in mermaid code blocks (```mermaid) with brief explanations.";
+      prompt += "Based on the data, relationships, processes, or structures described in this document, create helpful visual diagrams using Mermaid syntax. \n\nIMPORTANT SYNTAX & LAYOUT RULES:\n1. FAVOR VERTICAL LAYOUTS: Use 'graph TD' or 'flowchart TD' instead of horizontal (LR) layouts to fit the narrow chat container.\n2. Use quotes for ANY text labels containing spaces or special characters (e.g. A[\"Income Statement (USD)\"]).\n3. Avoid using parentheses inside labels unless they are quoted.\n4. Keep labels concise to prevent clipping.\n5. Ensure the syntax is valid.\n\nInclude diagrams such as: flowcharts for processes, graphs for organizational structure, timelines for milestones, or charts for data relationships. Provide 2-3 relevant diagrams in mermaid code blocks (```mermaid) with brief explanations.";
     } else {
         return "Unknown task";
     }
