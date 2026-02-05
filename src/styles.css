@@ -21,6 +21,35 @@ header {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+#sidebar-toggle {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    color: #e2e8f0;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#sidebar-toggle:hover {
+    background: rgba(51, 65, 85, 0.8);
+    border-color: rgba(96, 165, 250, 0.5);
+    transform: translateY(-1px);
+}
+
+#sidebar-toggle:active {
+    transform: translateY(0);
+}
+
 #file-status {
     font-size: 0.875rem;
     color: #94a3b8;
@@ -61,6 +90,17 @@ header {
     flex-direction: column;
     padding: 1.5rem;
     overflow-y: auto;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, border 0.3s ease;
+    flex-shrink: 0;
+}
+
+#right-nav.collapsed {
+    width: 0;
+    padding: 0;
+    opacity: 0;
+    border-left: none;
+    overflow: hidden;
+    pointer-events: none;
 }
 
 .nav-header {

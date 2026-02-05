@@ -27,8 +27,27 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
   
+  // Open file dialog automatically once the window is ready
+  mainWindow.webContents.on('did-finish-load', () => {
+    promptForFile();
+  });
+  
   // Open the DevTools for debugging
   mainWindow.webContents.openDevTools();
+}
+
+async function promptForFile() {
+  if (!mainWindow) return;
+  mainWindow.webContents.send('app:status', 'Opening file dialog...');
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile'],
+    filters: [{ name: 'PDFs', extensions: ['pdf'] }],
+  });
+  if (!canceled && filePaths.length > 0) {
+    loadFile(filePaths[0]);
+  } else {
+    mainWindow.webContents.send('app:status', 'Open cancelled.');
+  }
 }
 
 const menuTemplate = [
@@ -56,16 +75,7 @@ const menuTemplate = [
       {
         label: 'Open PDF',
         click: async () => {
-           mainWindow.webContents.send('app:status', 'Opening file dialog...');
-          const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
-            properties: ['openFile'],
-            filters: [{ name: 'PDFs', extensions: ['pdf'] }],
-          });
-          if (!canceled && filePaths.length > 0) {
-            loadFile(filePaths[0]);
-          } else {
-             mainWindow.webContents.send('app:status', 'Open cancelled.');
-          }
+          await promptForFile();
         },
       },
       ...(process.platform === 'darwin'
@@ -191,7 +201,7 @@ app.whenReady().then(() => {
       return "Please open a PDF file first.";
     }
     try {
-      return await callAI(question, "You are a helpful assistant analyzing an investor document.");
+      return await callAI(question, "You are a highly skilled financial analyst with a CPA qualification, assistant analyzing an investor document. If the request involes charts or any graphics use mermaid syntax to create diagrams, ensure that all strings are quoted. Always provide detailed and insightful answers based on the document content. Don't be sycophantic, be analytical and critical. If the question is not answerable based on the document, say you don't know but provide your best guess based on the content.");
     } catch (e) {
       return `Error: ${e.message}`;
     }
@@ -202,13 +212,13 @@ app.whenReady().then(() => {
       return "Please open a PDF file first.";
     }
     
-    let prompt = "You are a highly skilled financial analyst assistant. Based on the content of the document provided, perform the following task:\n\n";
+    let prompt = "";
     if (taskType === 'summarize') {
-      prompt += "Please provide a comprehensive summary of this document, highlighting key value propositions, financials, and team details.";
+      prompt = "Please provide a comprehensive summary of this document, highlighting key value propositions, financials, and team details.";
     } else if (taskType === 'tech-questions') {
-      prompt += "Based on the technical details in this document, please prepare a list of 5-10 technical due diligence questions to ask the team.";
+      prompt = "Based on the technical details in this document, please prepare a list of 5-10 technical due diligence questions to ask the team.";
     } else if (taskType === 'create-diagrams') {
-      prompt += "Based on the data, relationships, processes, or structures described in this document, create helpful visual diagrams using Mermaid syntax. \n\nIMPORTANT SYNTAX & LAYOUT RULES:\n1. FAVOR VERTICAL LAYOUTS: Use 'graph TD' or 'flowchart TD' instead of horizontal (LR) layouts to fit the narrow chat container.\n2. Use quotes for ANY text labels containing spaces or special characters (e.g. A[\"Income Statement (USD)\"]).\n3. Avoid using parentheses inside labels unless they are quoted.\n4. Keep labels concise to prevent clipping.\n5. Ensure the syntax is valid.\n\nInclude diagrams such as: flowcharts for processes, graphs for organizational structure, timelines for milestones, or charts for data relationships. Provide 2-3 relevant diagrams in mermaid code blocks (```mermaid) with brief explanations.";
+      prompt = "Based on the data, relationships, processes, or structures described in this document, create helpful visual diagrams using Mermaid syntax. \n\nIMPORTANT SYNTAX & LAYOUT RULES:\n1. FAVOR VERTICAL LAYOUTS: Use 'graph TD' or 'flowchart TD' instead of horizontal (LR) layouts to fit the narrow chat container.\n2. Use quotes for ANY text labels containing spaces or special characters (e.g. A[\"Income Statement (USD)\"]).\n3. Avoid using parentheses inside labels unless they are quoted.\n4. Keep labels concise to prevent clipping.\n5. Ensure the syntax is valid.\n\nInclude diagrams such as: flowcharts for processes, graphs for organizational structure, timelines for milestones, or charts for data relationships. Provide 2-3 relevant diagrams in mermaid code blocks (```mermaid) with brief explanations.";
     } else {
         return "Unknown task";
     }

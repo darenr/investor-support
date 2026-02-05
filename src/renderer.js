@@ -25,6 +25,8 @@ const fileStatus = document.getElementById('file-status');
 const appTitle = document.getElementById('app-title');
 const closeModalBtn = document.getElementById('close-modal');
 const statusBar = document.getElementById('status-bar');
+const sidebarToggle = document.getElementById('sidebar-toggle');
+const rightNav = document.getElementById('right-nav');
 
 if (!window.electronAPI) {
     const err = "Critical Error: Electron API not initialized. Preload script likely failed.";
@@ -92,6 +94,11 @@ document.querySelectorAll('.card').forEach(card => {
             await appendMessage('ai', `Error: ${error}`);
         }
     });
+});
+
+// Handle Sidebar Toggle
+sidebarToggle.addEventListener('click', () => {
+    rightNav.classList.toggle('collapsed');
 });
 
 // Chat Logic
@@ -204,8 +211,7 @@ async function renderMermaidDiagrams(containerEl) {
             const mermaidDiv = document.createElement('div');
             mermaidDiv.className = 'mermaid-diagram';
             mermaidDiv.id = diagramId;
-            mermaidDiv.textContent = mermaidCode;
-            
+            mermaidDiv.textContent = mermaidCode.replace('(', '&lpar;').replace(')', '&rpar;'); // Escape parentheses to prevent parsing issues
             // Render the diagram BEFORE replacing the pre element
             // This way if it throws, we haven't touched the DOM yet
             const tempContainer = document.createElement('div');
