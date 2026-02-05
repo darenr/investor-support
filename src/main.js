@@ -6,6 +6,8 @@ const { OpenAI } = require('openai');
 const { GoogleGenAI } = require('@google/genai');
 const { marked } = require('marked');
 
+app.name = 'Investor Support AI';
+
 let mainWindow;
 let pdfContent = '';
 const modelName = process.env.MODEL_NAME || 'gpt-5-nano';
@@ -29,6 +31,24 @@ function createWindow() {
 }
 
 const menuTemplate = [
+  ...(process.platform === 'darwin'
+    ? [
+        {
+          label: app.name,
+          submenu: [
+            { role: 'about' },
+            { type: 'separator' },
+            { role: 'services' },
+            { type: 'separator' },
+            { role: 'hide' },
+            { role: 'hideOthers' },
+            { role: 'unhide' },
+            { type: 'separator' },
+            { role: 'quit' },
+          ],
+        },
+      ]
+    : []),
   {
     label: 'File',
     submenu: [
@@ -47,8 +67,12 @@ const menuTemplate = [
           }
         },
       },
-      { type: 'separator' },
-      { role: 'quit' },
+      ...(process.platform === 'darwin'
+        ? []
+        : [
+            { type: 'separator' },
+            { role: 'quit' },
+          ]),
     ],
   },
   {
