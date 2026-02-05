@@ -1,20 +1,20 @@
-// Initialize Mermaid with dark theme (mermaid loaded from CDN)
+// Initialize Mermaid with light theme (mermaid loaded from CDN)
 window.mermaid.initialize({
     startOnLoad: false,
-    theme: 'dark',
+    theme: 'default',
     themeVariables: {
-        primaryColor: '#3b82f6',
-        primaryTextColor: '#e2e8f0',
-        primaryBorderColor: '#60a5fa',
+        primaryColor: '#2563eb',
+        primaryTextColor: '#1e293b',
+        primaryBorderColor: '#3b82f6',
         lineColor: '#64748b',
-        secondaryColor: '#8b5cf6',
+        secondaryColor: '#4f46e5',
         tertiaryColor: '#10b981',
-        background: '#0f172a',
-        mainBkg: '#1e293b',
-        secondBkg: '#334155',
-        textColor: '#e2e8f0',
-        border1: '#475569',
-        border2: '#64748b'
+        background: '#ffffff',
+        mainBkg: '#f8fafc',
+        secondBkg: '#f1f5f9',
+        textColor: '#334155',
+        border1: '#e2e8f0',
+        border2: '#cbd5e1'
     }
 });
 
@@ -211,7 +211,7 @@ async function renderMermaidDiagrams(containerEl) {
             const mermaidDiv = document.createElement('div');
             mermaidDiv.className = 'mermaid-diagram';
             mermaidDiv.id = diagramId;
-            mermaidDiv.textContent = mermaidCode.replace('(', '&lpar;').replace(')', '&rpar;'); // Escape parentheses to prevent parsing issues
+            mermaidDiv.textContent = mermaidCode;
             // Render the diagram BEFORE replacing the pre element
             // This way if it throws, we haven't touched the DOM yet
             const tempContainer = document.createElement('div');
