@@ -6,7 +6,8 @@ const { OpenAI } = require('openai');
 const { GoogleGenAI } = require('@google/genai');
 const { marked } = require('marked');
 
-app.name = 'Investor Support AI';
+app.setName('Investor Support');
+
 
 let mainWindow;
 let pdfContent = '';

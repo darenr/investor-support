@@ -99,9 +99,28 @@ async function sendMessage() {
         console.log("[sendMessage] AI Response received");
         const rendered = await window.electronAPI.renderMarkdown(response);
         console.log("[sendMessage] Markdown rendered");
-        loadingMsg.innerHTML = rendered;
+        const contentEl = loadingMsg.querySelector('.message-content');
+        if (contentEl) {
+            contentEl.innerHTML = rendered;
+        } else {
+            loadingMsg.innerHTML = rendered;
+        }
+        loadingMsg.dataset.markdown = response;
+        const copyBtn = loadingMsg.querySelector('.copy-btn');
+        if (copyBtn) {
+            copyBtn.disabled = false;
+        }
     } catch (error) {
-        loadingMsg.textContent = "Error communicating with AI.";
+        const contentEl = loadingMsg.querySelector('.message-content');
+        if (contentEl) {
+            contentEl.textContent = "Error communicating with AI.";
+        } else {
+            loadingMsg.textContent = "Error communicating with AI.";
+        }
+        const copyBtn = loadingMsg.querySelector('.copy-btn');
+        if (copyBtn) {
+            copyBtn.disabled = true;
+        }
     } finally {
         userInput.disabled = false;
         sendBtn.disabled = false;
@@ -112,14 +131,42 @@ async function sendMessage() {
 async function appendMessage(role, text) {
     const msgDiv = document.createElement('div');
     msgDiv.classList.add('message', role);
+    const contentDiv = document.createElement('div');
+    contentDiv.classList.add('message-content');
     if (role === 'ai') {
         const rendered = await window.electronAPI.renderMarkdown(text);
         console.log("[appendMessage] AI message rendered");
-        msgDiv.innerHTML = rendered;
+        contentDiv.innerHTML = rendered;
+        msgDiv.dataset.markdown = text;
+        const copyBtn = document.createElement('button');
+        copyBtn.classList.add('copy-btn');
+        copyBtn.textContent = 'Copy';
+        copyBtn.disabled = text === 'Thinking...';
+        copyBtn.addEventListener('click', async (event) => {
+            event.stopPropagation();
+            await copyMarkdownFromMessage(msgDiv, copyBtn);
+        });
+        msgDiv.appendChild(copyBtn);
     } else {
-         msgDiv.textContent = text;
+        contentDiv.textContent = text;
     }
+    msgDiv.appendChild(contentDiv);
     messagesContainer.appendChild(msgDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     return msgDiv;
+}
+
+async function copyMarkdownFromMessage(messageEl, buttonEl) {
+    const text = messageEl.dataset.markdown || '';
+    if (!text) return;
+    try {
+        await navigator.clipboard.writeText(text);
+        const original = buttonEl.textContent;
+        buttonEl.textContent = 'Copied';
+        setTimeout(() => {
+            buttonEl.textContent = original;
+        }, 1500);
+    } catch (error) {
+        console.error('Copy failed:', error);
+    }
 }
