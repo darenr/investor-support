@@ -8,11 +8,13 @@ const { marked } = require('marked');
 
 let mainWindow;
 let pdfContent = '';
+const modelName = process.env.MODEL_NAME || 'gpt-5-nano';
 
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    title: `Investor Support - ${modelName}`,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -103,36 +105,51 @@ async function loadFile(filePath) {
 }
 
 async function callAI(prompt, systemInstruction = null) {
+  const modelName = process.env.MODEL_NAME || 'gpt-5-nano';
+  const isOpenAI = modelName.toLowerCase().startsWith('gpt');
+
   const openAiKey = process.env.OPENAI_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
 
   let contextPrompt = `Thinking context (Document content): \n${pdfContent.substring(0, 100000)}\n\nUser Question: ${prompt}`; // Truncate to avoid context limits blindly, though 100k chars is a lot.
-  
+
   if (systemInstruction) {
       contextPrompt = `${systemInstruction}\n\n${contextPrompt}`;
   }
 
-  if (openAiKey) {
+  if (isOpenAI) {
+    if (!openAiKey) {
+      throw new Error('OPENAI_API_KEY is required for GPT models');
+    }
+    mainWindow.webContents.send('app:status', `Calling OpenAI model: ${modelName}...`);
     const openai = new OpenAI({ apiKey: openAiKey });
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: modelName,
       messages: [{ role: 'user', content: contextPrompt }],
     });
+    mainWindow.webContents.send('app:status', 'OpenAI response received.');
     return response.choices[0].message.content;
-  } else if (geminiKey) {
-    const client = new GoogleGenAI({ apiKey: geminiKey });
-    const response = await client.models.generateContent({
-      model: 'gemini-1.5-pro',
-      contents: contextPrompt,
-    });
-    return response.text;
-  } else {
-    throw new Error('No API Key found (OPENAI_API_KEY or GEMINI_API_KEY)');
   }
+
+  if (!geminiKey) {
+    throw new Error('GEMINI_API_KEY is required for Gemini models');
+  }
+  mainWindow.webContents.send('app:status', `Calling Gemini model: ${modelName}...`);
+  const client = new GoogleGenAI({ apiKey: geminiKey });
+  const response = await client.models.generateContent({
+    model: modelName,
+    contents: contextPrompt,
+  });
+  mainWindow.webContents.send('app:status', 'Gemini response received.');
+  return response.text;
 }
 
 app.whenReady().then(() => {
   createWindow();
+
+  ipcMain.handle('model:get', () => {
+    return modelName;
+  });
 
   // Markdown rendering handler
   ipcMain.handle('markdown:render', async (event, text) => {

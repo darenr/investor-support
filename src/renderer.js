@@ -2,6 +2,7 @@ const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const messagesContainer = document.getElementById('messages');
 const fileStatus = document.getElementById('file-status');
+const appTitle = document.getElementById('app-title');
 const closeModalBtn = document.getElementById('close-modal');
 const statusBar = document.getElementById('status-bar');
 
@@ -15,6 +16,14 @@ if (!window.electronAPI) {
 }
 
 let isFileLoaded = false;
+
+window.electronAPI.getModelName().then((modelName) => {
+    if (modelName) {
+        appTitle.textContent = `Investor Support AI - ${modelName}`;
+    }
+}).catch(() => {
+    // No-op if model name can't be fetched
+});
 
 // Update Status Bar
 window.electronAPI.onAppStatus((event, message) => {
