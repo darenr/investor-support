@@ -49,17 +49,6 @@ const menuTemplate = [
     ],
   },
   {
-    label: 'Analyze',
-    submenu: [
-      {
-        label: 'Open Analyze Menu',
-        click: () => {
-          mainWindow.webContents.send('menu:analyze');
-        },
-      },
-    ],
-  },
-  {
       label: 'Edit',
       submenu: [
           { role: 'undo' },
