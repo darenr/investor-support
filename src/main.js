@@ -15,8 +15,8 @@ const modelName = process.env.MODEL_NAME || 'gpt-5-nano';
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1400,
+    height: 900,
     title: `Investor Support - ${modelName}`,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -207,6 +207,8 @@ app.whenReady().then(() => {
       prompt = "Please provide a comprehensive summary of this document, highlighting key value propositions, financials, and team details.";
     } else if (taskType === 'tech-questions') {
       prompt = "Based on the technical details in this document, please prepare a list of 5-10 technical due diligence questions to ask the team.";
+    } else if (taskType === 'create-diagrams') {
+      prompt = "Based on the data, relationships, processes, or structures described in this document, create helpful visual diagrams using Mermaid syntax. \n\nIMPORTANT SYNTAX RULES:\n1. Use quotes for ANY text labels containing spaces or special characters (e.g. A[\"Income Statement (USD)\"]).\n2. Avoid using parentheses inside labels unless they are quoted.\n3. Keep labels concise.\n4. Ensure the syntax is valid (e.g. use 'graph TD' or 'flowchart LR').\n\nInclude diagrams such as: flowcharts for processes, graphs for organizational structure, timelines for milestones, or charts for data relationships. Provide 2-3 relevant diagrams in mermaid code blocks (```mermaid) with brief explanations.";
     } else {
         return "Unknown task";
     }

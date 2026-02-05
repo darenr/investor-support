@@ -1,3 +1,23 @@
+// Initialize Mermaid with dark theme (mermaid loaded from CDN)
+window.mermaid.initialize({
+    startOnLoad: false,
+    theme: 'dark',
+    themeVariables: {
+        primaryColor: '#3b82f6',
+        primaryTextColor: '#e2e8f0',
+        primaryBorderColor: '#60a5fa',
+        lineColor: '#64748b',
+        secondaryColor: '#8b5cf6',
+        tertiaryColor: '#10b981',
+        background: '#0f172a',
+        mainBkg: '#1e293b',
+        secondBkg: '#334155',
+        textColor: '#e2e8f0',
+        border1: '#475569',
+        border2: '#64748b'
+    }
+});
+
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const messagesContainer = document.getElementById('messages');
@@ -56,6 +76,7 @@ document.querySelectorAll('.card').forEach(card => {
         let taskName = "";
         if (taskType === 'summarize') taskName = "Summarizing document";
         if (taskType === 'tech-questions') taskName = "Generating tech questions";
+        if (taskType === 'create-diagrams') taskName = "Creating diagrams from document data";
 
         await appendMessage('user', `[Running Task: ${taskName}...]`);
         await appendMessage('ai', 'Thinking...');
@@ -106,6 +127,10 @@ async function sendMessage() {
             loadingMsg.innerHTML = rendered;
         }
         loadingMsg.dataset.markdown = response;
+        
+        // Render any Mermaid diagrams
+        await renderMermaidDiagrams(loadingMsg);
+        
         const copyBtn = loadingMsg.querySelector('.copy-btn');
         if (copyBtn) {
             copyBtn.disabled = false;
@@ -138,6 +163,10 @@ async function appendMessage(role, text) {
         console.log("[appendMessage] AI message rendered");
         contentDiv.innerHTML = rendered;
         msgDiv.dataset.markdown = text;
+        
+        // Render any Mermaid diagrams
+        msgDiv.appendChild(contentDiv);
+        await renderMermaidDiagrams(msgDiv);
         const copyBtn = document.createElement('button');
         copyBtn.classList.add('copy-btn');
         copyBtn.textContent = 'Copy';
@@ -149,11 +178,75 @@ async function appendMessage(role, text) {
         msgDiv.appendChild(copyBtn);
     } else {
         contentDiv.textContent = text;
+        msgDiv.appendChild(contentDiv);
     }
-    msgDiv.appendChild(contentDiv);
     messagesContainer.appendChild(msgDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     return msgDiv;
+}
+
+async function renderMermaidDiagrams(containerEl) {
+    // Find all code blocks with language-mermaid class
+    const mermaidBlocks = containerEl.querySelectorAll('pre code.language-mermaid');
+    console.log(`[renderMermaidDiagrams] Found ${mermaidBlocks.length} mermaid blocks`);
+    
+    for (let i = 0; i < mermaidBlocks.length; i++) {
+        const codeBlock = mermaidBlocks[i];
+        const preElement = codeBlock.parentElement;
+        const mermaidCode = codeBlock.textContent;
+        console.log(`[renderMermaidDiagrams] Processing block ${i}:`, mermaidCode.substring(0, 100) + '...');
+        
+        try {
+            // Create a unique ID for this diagram
+            const diagramId = `mermaid-${Date.now()}-${i}`;
+            
+            // Create a div to hold the rendered diagram
+            const mermaidDiv = document.createElement('div');
+            mermaidDiv.className = 'mermaid-diagram';
+            mermaidDiv.id = diagramId;
+            mermaidDiv.textContent = mermaidCode;
+            
+            // Render the diagram BEFORE replacing the pre element
+            // This way if it throws, we haven't touched the DOM yet
+            const tempContainer = document.createElement('div');
+            tempContainer.style.display = 'block'; // Make visible for debugging if needed, but we keep it out of view
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            document.body.appendChild(tempContainer);
+            tempContainer.appendChild(mermaidDiv);
+            
+            try {
+                console.log(`[renderMermaidDiagrams] Attempting to run mermaid.run for ${diagramId}`);
+                await window.mermaid.run({ nodes: [mermaidDiv] });
+                
+                // Replace the pre/code block with our successfully rendered div
+                preElement.replaceWith(mermaidDiv);
+                console.log(`[renderMermaidDiagrams] Successfully rendered diagram ${diagramId}`);
+            } catch (renderError) {
+                console.error('[renderMermaidDiagrams] Mermaid parse/render error. Showing raw block instead.', renderError);
+                
+                // On error, let's add a small error banner above the pre block
+                const errorBanner = document.createElement('div');
+                errorBanner.style.color = '#ef4444';
+                errorBanner.style.fontSize = '0.75rem';
+                errorBanner.style.marginBottom = '0.5rem';
+                errorBanner.style.fontStyle = 'italic';
+                errorBanner.textContent = 'Failed to render diagram. Showing raw syntax:';
+                preElement.prepend(errorBanner);
+                
+                // Ensure the pre block is visible
+                preElement.style.display = 'block';
+                preElement.style.opacity = '1';
+            } finally {
+                if (tempContainer.parentNode) {
+                    document.body.removeChild(tempContainer);
+                }
+            }
+        } catch (error) {
+            console.error('[renderMermaidDiagrams] Setup error:', error);
+            // Keep original preElement as is
+        }
+    }
 }
 
 async function copyMarkdownFromMessage(messageEl, buttonEl) {
