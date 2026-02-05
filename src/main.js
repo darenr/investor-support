@@ -4,6 +4,7 @@ const fs = require('fs');
 const pdf = require('pdf-parse');
 const { OpenAI } = require('openai');
 const { GoogleGenAI } = require('@google/genai');
+const { marked } = require('marked');
 
 let mainWindow;
 let pdfContent = '';
@@ -21,8 +22,8 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
   
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
+  // Open the DevTools for debugging
+  mainWindow.webContents.openDevTools();
 }
 
 const menuTemplate = [
@@ -132,6 +133,16 @@ async function callAI(prompt, systemInstruction = null) {
 
 app.whenReady().then(() => {
   createWindow();
+
+  // Markdown rendering handler
+  ipcMain.handle('markdown:render', async (event, text) => {
+    try {
+      return marked(text);
+    } catch (e) {
+      console.error("Markdown rendering error:", e);
+      return text; // Fallback to plain text
+    }
+  });
 
   ipcMain.handle('ai:ask', async (event, question) => {
     if (!pdfContent) {

@@ -48,8 +48,8 @@ document.querySelectorAll('.card').forEach(card => {
         if (taskType === 'summarize') taskName = "Summarizing document";
         if (taskType === 'tech-questions') taskName = "Generating tech questions";
 
-        appendMessage('user', `[Running Task: ${taskName}...]`);
-        appendMessage('ai', 'Thinking...');
+        await appendMessage('user', `[Running Task: ${taskName}...]`);
+        await appendMessage('ai', 'Thinking...');
         
         // Remove the "Thinking..." message implicitly by appending, or track it? 
         // For simplicity, we'll just append the result.
@@ -57,9 +57,9 @@ document.querySelectorAll('.card').forEach(card => {
         try {
             const response = await window.electronAPI.runTask(taskType);
             // Ideally remove the last 'Thinking...' message, but for MVP just append.
-            appendMessage('ai', response);
+            await appendMessage('ai', response);
         } catch (error) {
-            appendMessage('ai', `Error: ${error}`);
+            await appendMessage('ai', `Error: ${error}`);
         }
     });
 });
@@ -78,16 +78,19 @@ async function sendMessage() {
     if (!text) return;
 
     userInput.value = '';
-    appendMessage('user', text);
+    await appendMessage('user', text);
     
     // Disable during generation
     userInput.disabled = true;
     sendBtn.disabled = true;
-    const loadingMsg = appendMessage('ai', 'Thinking...');
+    const loadingMsg = await appendMessage('ai', 'Thinking...');
 
     try {
         const response = await window.electronAPI.askAI(text);
-        loadingMsg.innerHTML = window.electronAPI.renderMarkdown(response); // Update the thinking message
+        console.log("[sendMessage] AI Response received");
+        const rendered = await window.electronAPI.renderMarkdown(response);
+        console.log("[sendMessage] Markdown rendered");
+        loadingMsg.innerHTML = rendered;
     } catch (error) {
         loadingMsg.textContent = "Error communicating with AI.";
     } finally {
@@ -97,11 +100,12 @@ async function sendMessage() {
     }
 }
 
-function appendMessage(role, text) {
+async function appendMessage(role, text) {
     const msgDiv = document.createElement('div');
     msgDiv.classList.add('message', role);
     if (role === 'ai') {
-        const rendered = window.electronAPI.renderMarkdown(text);
+        const rendered = await window.electronAPI.renderMarkdown(text);
+        console.log("[appendMessage] AI message rendered");
         msgDiv.innerHTML = rendered;
     } else {
          msgDiv.textContent = text;

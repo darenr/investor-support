@@ -178,6 +178,16 @@ header {
 .message.ai h1:first-child, .message.ai h2:first-child, .message.ai h3:first-child {
     margin-top: 0;
 }
+.message.ai strong, .message.ai b {
+    font-weight: 600;
+}
+.message.ai em, .message.ai i {
+    font-style: italic;
+}
+.message.ai a {
+    color: #3b82f6;
+    text-decoration: underline;
+}
 
 #input-area {
     display: flex;
